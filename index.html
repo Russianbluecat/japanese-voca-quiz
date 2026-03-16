@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日本語 단어 퀴즈</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #f5f0e8;
+    --accent: #c84b31;
+    --accent2: #2d6a4f;
+    --muted: #8a8070;
+    --card: #fffdf7;
+    --border: #d4cdc0;
+    --correct-bg: #e8f5e9;
+    --correct-border: #2d6a4f;
+    --wrong-bg: #fdecea;
+    --wrong-border: #c84b31;
+    --shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+ 
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 16px 60px;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(200,75,49,0.04) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(45,106,79,0.04) 0%, transparent 50%);
+  }
+ 
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+ 
+  header .ja-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ink);
+    line-height: 1;
+  }
+ 
+  header .sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+ 
+  .divider {
+    width: 60px;
+    height: 2px;
+    background: var(--accent);
+    margin: 12px auto 0;
+  }
+ 
+  /* Progress */
+  .progress-wrap {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 28px;
+  }
+ 
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+ 
+  .progress-bar-bg {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+ 
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+ 
+  /* Quiz Card */
+  .quiz-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px 28px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+ 
+  .sentence-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+ 
+  .sentence {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.5rem;
+    line-height: 1.8;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+ 
+  .blank {
+    display: inline-block;
+    min-width: 80px;
+    border-bottom: 2px solid var(--accent);
+    color: var(--accent);
+    font-weight: 700;
+    text-align: center;
+    padding: 0 8px;
+  }
+ 
+  .translation {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.6;
+    font-style: italic;
+  }
+ 
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 28px;
+  }
+ 
+  .option-btn {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+ 
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--ink);
+    background: #f0ede6;
+    transform: translateX(3px);
+  }
+ 
+  .option-btn .num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+ 
+  .option-btn.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct-border);
+    color: var(--correct-border);
+    font-weight: 600;
+  }
+ 
+  .option-btn.correct .num {
+    background: var(--correct-border);
+    border-color: var(--correct-border);
+    color: white;
+  }
+ 
+  .option-btn.wrong {
+    background: var(--wrong-bg);
+    border-color: var(--wrong-border);
+    color: var(--wrong-border);
+    font-weight: 600;
+  }
+ 
+  .option-btn.wrong .num {
+    background: var(--wrong-border);
+    border-color: var(--wrong-border);
+    color: white;
+  }
+ 
+  .option-btn:disabled {
+    cursor: default;
+  }
+ 
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: none;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.5;
+  }
+ 
+  .feedback.show { display: flex; }
+ 
+  .feedback.correct-fb {
+    background: var(--correct-bg);
+    color: var(--correct-border);
+    border: 1px solid #a5d6a7;
+  }
+ 
+  .feedback.wrong-fb {
+    background: var(--wrong-bg);
+    color: var(--wrong-border);
+    border: 1px solid #ef9a9a;
+  }
+ 
+  .feedback-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+ 
+  /* Example sentence box */
+  .example-box {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: var(--paper);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 8px 8px 0;
+    display: none;
+    font-size: 0.83rem;
+    color: var(--ink);
+    line-height: 1.8;
+  }
+ 
+  .example-box.show { display: block; }
+  .example-box .ja { font-family: 'Noto Serif JP', serif; color: var(--ink); }
+  .example-box .ko { color: var(--muted); margin-top: 2px; font-style: italic; }
+ 
+  /* Next button */
+  .next-btn {
+    width: 100%;
+    max-width: 600px;
+    padding: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: none;
+    margin-top: 4px;
+  }
+ 
+  .next-btn.show { display: block; }
+  .next-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
+ 
+  /* Score screen */
+  .score-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: var(--shadow);
+  }
+ 
+  .score-screen.show { display: flex; }
+ 
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+ 
+  .score-num {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+ 
+  .score-total { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+ 
+  .score-msg {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+ 
+  .score-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
+ 
+  .retry-btn {
+    padding: 14px 40px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+ 
+  .retry-btn:hover { background: #a33a22; transform: translateY(-1px); }
+ 
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+  }
+ 
+  .loading-dots::after {
+    content: '';
+    animation: dots 1.4s infinite;
+  }
+ 
+  @keyframes dots {
+    0%, 20% { content: '.'; }
+    40% { content: '..'; }
+    60%, 100% { content: '...'; }
+  }
+ 
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+ 
+  .quiz-card { animation: fadeIn 0.3s ease; }
+ 
+  .sheet-link {
+    margin-top: 32px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+ 
+  .sheet-link a {
+    color: var(--accent2);
+    text-decoration: none;
+    font-weight: 600;
+  }
+ 
+  .sheet-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+ 
+<header>
+  <div class="ja-title">日本語 単語クイズ</div>
+  <div class="sub">Japanese Vocabulary Quiz</div>
+  <div class="divider"></div>
+</header>
+ 
+<div id="loading" class="loading">
+  데이터 불러오는 중<span class="loading-dots"></span>
+</div>
+ 
+<div class="progress-wrap" id="progressWrap" style="display:none">
+  <div class="progress-info">
+    <span id="progressText">문제 1 / 10</span>
+    <span id="scoreText">점수: 0</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+  </div>
+</div>
+ 
+<div class="quiz-card" id="quizCard" style="display:none">
+  <div class="sentence-label">빈칸에 알맞은 단어를 고르세요</div>
+  <div class="sentence" id="sentence"></div>
+  <div class="translation" id="translationText"></div>
+ 
+  <div class="options" id="options"></div>
+ 
+  <div class="feedback" id="feedback">
+    <span class="feedback-icon" id="feedbackIcon"></span>
+    <span id="feedbackText"></span>
+  </div>
+ 
+  <div class="example-box" id="exampleBox">
+    <div class="ja" id="exampleJa"></div>
+    <div class="ko" id="exampleKo"></div>
+  </div>
+</div>
+ 
+<button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 →</button>
+ 
+<div class="score-screen" id="scoreScreen">
+  <div class="score-circle">
+    <div class="score-num" id="finalScore">0</div>
+    <div class="score-total" id="finalTotal">/ 10</div>
+  </div>
+  <div class="score-msg" id="scoreMsg"></div>
+  <div class="score-sub" id="scoreSub"></div>
+  <button class="retry-btn" onclick="startQuiz()">다시 풀기 🔄</button>
+</div>
+ 
+<div class="sheet-link" id="sheetLink" style="display:none">
+  <a href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data (구글 시트)</a>
+</div>
+ 
+<script>
+const SHEET_ID = '1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo';
+const SHEET_NAME = 'Raw_Data';
+const QUIZ_COUNT = 10;
+ 
+let allData = [];
+let quizSet = [];
+let current = 0;
+let score = 0;
+let answered = false;
+ 
+async function fetchData() {
+  // Google Sheets JSON export URL
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  const res = await fetch(url);
+  const text = await res.text();
+  // Strip Google's wrapper
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  const rows = json.table.rows;
+  const cols = json.table.cols;
+ 
+  // Map column indices
+  const colMap = {};
+  cols.forEach((c, i) => { colMap[c.label] = i; });
+ 
+  return rows
+    .filter(r => r.c[colMap['Original']] && r.c[colMap['Original']].v)
+    .map(r => ({
+      original: r.c[colMap['Original']]?.v || '',
+      hiragana: r.c[colMap['Hiragana']]?.v || '',
+      meaning: r.c[colMap['Meaning']]?.v || '',
+      sample: r.c[colMap['Sample_Sentence']]?.v || '',
+      blank: r.c[colMap['Blank_Sentence']]?.v || '',
+      translation: r.c[colMap['Translation']]?.v || '',
+    }));
+}
+ 
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+ 
+function makeOptions(correct, pool) {
+  const distractors = shuffle(pool.filter(d => d.meaning !== correct.meaning))
+    .slice(0, 3)
+    .map(d => d.meaning);
+  return shuffle([correct.meaning, ...distractors]);
+}
+ 
+function startQuiz() {
+  document.getElementById('scoreScreen').classList.remove('show');
+  document.getElementById('progressWrap').style.display = 'flex';
+  document.getElementById('quizCard').style.display = 'block';
+  document.getElementById('nextBtn').classList.remove('show');
+  document.getElementById('sheetLink').style.display = 'none';
+ 
+  quizSet = shuffle(allData).slice(0, Math.min(QUIZ_COUNT, allData.length));
+  current = 0;
+  score = 0;
+  renderQuestion();
+}
+ 
+function renderQuestion() {
+  answered = false;
+  const q = quizSet[current];
+  const total = quizSet.length;
+ 
+  // Progress
+  document.getElementById('progressText').textContent = `문제 ${current + 1} / ${total}`;
+  document.getElementById('scoreText').textContent = `점수: ${score}`;
+  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
+ 
+  // Sentence: replace Original in Blank_Sentence display
+  let sentenceHtml = q.blank;
+  // The blank sentence has (　) or similar — show word with blank span after answering
+  document.getElementById('sentence').innerHTML = sentenceHtml;
+  document.getElementById('translationText').textContent = q.translation;
+ 
+  // Hide feedback
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback';
+  document.getElementById('exampleBox').className = 'example-box';
+ 
+  // Options
+  const opts = makeOptions(q, allData);
+  const container = document.getElementById('options');
+  container.innerHTML = '';
+  opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="num">${i + 1}</span><span>${opt}</span>`;
+    btn.onclick = () => selectAnswer(opt, q, btn, opts);
+    container.appendChild(btn);
+  });
+ 
+  document.getElementById('nextBtn').classList.remove('show');
+ 
+  // Animate card
+  const card = document.getElementById('quizCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn 0.3s ease';
+}
+ 
+function selectAnswer(selected, q, clickedBtn, opts) {
+  if (answered) return;
+  answered = true;
+ 
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    const label = b.querySelector('span:last-child').textContent;
+    if (label === q.meaning) b.classList.add('correct');
+  });
+ 
+  const fb = document.getElementById('feedback');
+  const isCorrect = selected === q.meaning;
+ 
+  if (isCorrect) {
+    score++;
+    clickedBtn.classList.add('correct');
+    fb.className = 'feedback correct-fb show';
+    document.getElementById('feedbackIcon').textContent = '✓';
+    document.getElementById('feedbackText').innerHTML = `정답! <strong>「${q.original}」</strong>은(는) <strong>${q.meaning}</strong> 입니다.`;
+  } else {
+    clickedBtn.classList.add('wrong');
+    fb.className = 'feedback wrong-fb show';
+    document.getElementById('feedbackIcon').textContent = '✗';
+    document.getElementById('feedbackText').innerHTML = `오답! 정답은 <strong>「${q.original}」 = ${q.meaning}</strong> 입니다.`;
+  }
+ 
+  // Show example sentence
+  const ex = document.getElementById('exampleBox');
+  ex.className = 'example-box show';
+  document.getElementById('exampleJa').textContent = `📖 ${q.sample}`;
+  document.getElementById('exampleKo').textContent = q.translation;
+ 
+  document.getElementById('scoreText').textContent = `점수: ${score}`;
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('nextBtn').textContent =
+    current + 1 < quizSet.length ? '다음 문제 →' : '결과 보기 →';
+}
+ 
+function nextQuestion() {
+  current++;
+  if (current >= quizSet.length) {
+    showScore();
+  } else {
+    renderQuestion();
+  }
+}
+ 
+function showScore() {
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('quizCard').style.display = 'none';
+  document.getElementById('nextBtn').classList.remove('show');
+ 
+  const total = quizSet.length;
+  const pct = score / total;
+ 
+  document.getElementById('finalScore').textContent = score;
+  document.getElementById('finalTotal').textContent = `/ ${total}`;
+ 
+  let msg, sub;
+  if (pct === 1) { msg = '완벽해요! 🎉'; sub = '모든 문제를 맞혔습니다!'; }
+  else if (pct >= 0.8) { msg = '훌륭해요! 🌟'; sub = '거의 다 맞혔네요!'; }
+  else if (pct >= 0.6) { msg = '잘 했어요! 👍'; sub = '조금 더 공부하면 완벽해질 거예요.'; }
+  else if (pct >= 0.4) { msg = '계속 노력해요! 💪'; sub = '복습하고 다시 도전해보세요.'; }
+  else { msg = '다시 도전! 📚'; sub = '단어를 더 공부하고 다시 풀어보세요.'; }
+ 
+  document.getElementById('scoreMsg').textContent = msg;
+  document.getElementById('scoreSub').textContent = sub;
+  document.getElementById('scoreScreen').classList.add('show');
+  document.getElementById('sheetLink').style.display = 'block';
+}
+ 
+// Init
+(async () => {
+  try {
+    allData = await fetchData();
+    document.getElementById('loading').style.display = 'none';
+    if (allData.length < 4) {
+      document.getElementById('loading').textContent = '데이터가 부족합니다. 시트를 확인해주세요.';
+      document.getElementById('loading').style.display = 'block';
+      return;
+    }
+    startQuiz();
+  } catch (e) {
+    document.getElementById('loading').textContent = '데이터 로딩 실패. 시트 공개 설정을 확인해주세요.';
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>

@@ -524,6 +524,10 @@ async function fetchData() {
     return row.c[idx]?.v || '';
   };
 
+  // DEBUG: log first row and colMap to console
+  console.log('colMap:', JSON.stringify(colMap));
+  if (rows[0]) console.log('first row sample:', JSON.stringify(rows[0].c?.map(c => c?.v)));
+
   return rows
     .filter(r => r.c && r.c[0] && r.c[0].v && r.c[0].v !== 'Original')
     .map(r => ({

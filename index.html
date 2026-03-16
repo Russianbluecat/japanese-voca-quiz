@@ -495,11 +495,21 @@ function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
+// Extract the word inside parentheses from a blank sentence
+function extractBracketWord(blankSentence) {
+  const m = blankSentence.match(/[（(]([^）)]+)[）)]/);
+  return m ? m[1] : null;
+}
+
 function makeOptions(correct, pool) {
-  const distractors = shuffle(pool.filter(d => d.meaning !== correct.meaning))
-    .slice(0, 3)
-    .map(d => d.meaning);
-  return shuffle([correct.meaning, ...distractors]);
+  const correctWord = extractBracketWord(correct.blank);
+  const distractors = shuffle(
+    pool
+      .filter(d => d !== correct)
+      .map(d => extractBracketWord(d.blank))
+      .filter(w => w && w !== correctWord)
+  ).slice(0, 3);
+  return shuffle([correctWord, ...distractors]);
 }
 
 function startQuiz() {
@@ -525,10 +535,9 @@ function renderQuestion() {
   document.getElementById('scoreText').textContent = `점수: ${score}`;
   document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
 
-  // Sentence: replace Original in Blank_Sentence display
-  let sentenceHtml = q.blank;
-  // The blank sentence has (　) or similar — show word with blank span after answering
-  document.getElementById('sentence').innerHTML = sentenceHtml;
+  // Replace bracket content with blank underline
+  const blankDisplay = q.blank.replace(/[（(][^）)]+[）)]/, '(<span class="blank">　　　　</span>)');
+  document.getElementById('sentence').innerHTML = blankDisplay;
   document.getElementById('translationText').textContent = q.translation;
 
   // Hide feedback
@@ -562,26 +571,31 @@ function selectAnswer(selected, q, clickedBtn, opts) {
   answered = true;
 
   const allBtns = document.querySelectorAll('.option-btn');
+  const correctWord = extractBracketWord(q.blank);
   allBtns.forEach(b => {
     b.disabled = true;
     const label = b.querySelector('span:last-child').textContent;
-    if (label === q.meaning) b.classList.add('correct');
+    if (label === correctWord) b.classList.add('correct');
   });
 
   const fb = document.getElementById('feedback');
-  const isCorrect = selected === q.meaning;
+  const isCorrect = selected === correctWord;
+
+  // Reveal answer in sentence
+  const blankRevealed = q.blank.replace(/[（(][^）)]+[）)]/, `(<span class="blank" style="color:var(--accent2);border-color:var(--accent2)">${correctWord}</span>)`);
+  document.getElementById('sentence').innerHTML = blankRevealed;
 
   if (isCorrect) {
     score++;
     clickedBtn.classList.add('correct');
     fb.className = 'feedback correct-fb show';
     document.getElementById('feedbackIcon').textContent = '✓';
-    document.getElementById('feedbackText').innerHTML = `정답! <strong>「${q.original}」</strong>은(는) <strong>${q.meaning}</strong> 입니다.`;
+    document.getElementById('feedbackText').innerHTML = `정답! <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
   } else {
     clickedBtn.classList.add('wrong');
     fb.className = 'feedback wrong-fb show';
     document.getElementById('feedbackIcon').textContent = '✗';
-    document.getElementById('feedbackText').innerHTML = `오답! 정답은 <strong>「${q.original}」 = ${q.meaning}</strong> 입니다.`;
+    document.getElementById('feedbackText').innerHTML = `오답! 정답은 <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
   }
 
   // Show example sentence

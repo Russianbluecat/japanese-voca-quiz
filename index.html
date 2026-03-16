@@ -471,13 +471,12 @@
   <div class="example-box" id="exampleBox">
     <div class="ja" id="exampleJa"></div>
     <div class="ko" id="exampleKo"></div>
+    <div class="extra-btns" id="extraBtns" style="margin-top:12px;">
+      <button class="extra-btn hira-btn" onclick="toggleHira()">🔤 히라가나 보기</button>
+      <button class="extra-btn papago-btn" onclick="openPapago()">🌐 번역 보기</button>
+    </div>
+    <div class="hira-reveal" id="hiraReveal"></div>
   </div>
-
-  <div class="extra-btns" id="extraBtns">
-    <button class="extra-btn hira-btn" onclick="toggleHira()">🔤 히라가나 보기</button>
-    <button class="extra-btn papago-btn" onclick="openPapago()">🌐 번역 보기</button>
-  </div>
-  <div class="hira-reveal" id="hiraReveal"></div>
 </div>
 
 <button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 →</button>
@@ -591,7 +590,7 @@ function renderQuestion() {
   const fb = document.getElementById('feedback');
   fb.className = 'feedback';
   document.getElementById('exampleBox').className = 'example-box';
-  document.getElementById('extraBtns').className = 'extra-btns';
+  document.getElementById('extraBtns').style.display = 'none';
   document.getElementById('hiraReveal').className = 'hira-reveal';
 
   // Options
@@ -654,7 +653,8 @@ function selectAnswer(selected, q, clickedBtn, opts) {
   document.getElementById('exampleKo').textContent = q.translation;
 
   // Show extra buttons
-  document.getElementById('extraBtns').className = 'extra-btns show';
+  const eb = document.getElementById('extraBtns');
+  eb.style.display = 'flex';
   document.getElementById('hiraReveal').className = 'hira-reveal';
   document.getElementById('hiraReveal').textContent = '';
 

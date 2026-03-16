@@ -392,6 +392,46 @@
   }
 
   .sheet-link a:hover { text-decoration: underline; }
+
+  .extra-btns {
+    display: none;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .extra-btns.show { display: flex; }
+
+  .extra-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+  .extra-btn:hover { background: var(--paper); border-color: var(--ink); }
+  .extra-btn.hira-btn { border-color: var(--accent2); color: var(--accent2); }
+  .extra-btn.hira-btn:hover { background: var(--correct-bg); }
+  .extra-btn.papago-btn { border-color: #03c75a; color: #03c75a; }
+  .extra-btn.papago-btn:hover { background: #f0fff5; }
+
+  .hira-reveal {
+    display: none;
+    margin-top: 10px;
+    padding: 10px 16px;
+    background: #f0f7ff;
+    border-left: 3px solid #5b9bd5;
+    border-radius: 0 8px 8px 0;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.9rem;
+    color: #2c4a6e;
+    line-height: 1.8;
+  }
+  .hira-reveal.show { display: block; }
 </style>
 </head>
 <body>
@@ -432,6 +472,12 @@
     <div class="ja" id="exampleJa"></div>
     <div class="ko" id="exampleKo"></div>
   </div>
+
+  <div class="extra-btns" id="extraBtns">
+    <button class="extra-btn hira-btn" onclick="toggleHira()">🔤 히라가나 보기</button>
+    <button class="extra-btn papago-btn" onclick="openPapago()">🌐 번역 보기</button>
+  </div>
+  <div class="hira-reveal" id="hiraReveal"></div>
 </div>
 
 <button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 →</button>
@@ -485,6 +531,7 @@ async function fetchData() {
       hiragana:    getVal(r, 'Hiragana', 1),
       meaning:     getVal(r, 'Meaning', 2),
       sample:      getVal(r, 'Sample_Sentence', 3),
+      sampleHira:  getVal(r, 'Sample_Sentence_hiragana', 4),
       blank:       getVal(r, 'Blank_Sentence', 5),
       translation: getVal(r, 'Translation', 6),
     }))
@@ -544,6 +591,8 @@ function renderQuestion() {
   const fb = document.getElementById('feedback');
   fb.className = 'feedback';
   document.getElementById('exampleBox').className = 'example-box';
+  document.getElementById('extraBtns').className = 'extra-btns';
+  document.getElementById('hiraReveal').className = 'hira-reveal';
 
   // Options
   const opts = makeOptions(q, allData);
@@ -604,6 +653,11 @@ function selectAnswer(selected, q, clickedBtn, opts) {
   document.getElementById('exampleJa').textContent = `📖 ${q.sample}`;
   document.getElementById('exampleKo').textContent = q.translation;
 
+  // Show extra buttons
+  document.getElementById('extraBtns').className = 'extra-btns show';
+  document.getElementById('hiraReveal').className = 'hira-reveal';
+  document.getElementById('hiraReveal').textContent = '';
+
   document.getElementById('scoreText').textContent = `점수: ${score}`;
   document.getElementById('nextBtn').classList.add('show');
   document.getElementById('nextBtn').textContent =
@@ -641,6 +695,23 @@ function showScore() {
   document.getElementById('scoreSub').textContent = sub;
   document.getElementById('scoreScreen').classList.add('show');
   document.getElementById('sheetLink').style.display = 'block';
+}
+
+function toggleHira() {
+  const box = document.getElementById('hiraReveal');
+  const q = quizSet[current - 1] || quizSet[current];
+  if (box.classList.contains('show')) {
+    box.classList.remove('show');
+  } else {
+    box.textContent = q.sampleHira || '히라가나 정보 없음';
+    box.classList.add('show');
+  }
+}
+
+function openPapago() {
+  const q = quizSet[current - 1] || quizSet[current];
+  const sentence = encodeURIComponent(q.sample);
+  window.open(`https://papago.naver.com/?sk=ja&tk=ko&hn=1&st=${sentence}`, '_blank');
 }
 
 // Init

@@ -580,6 +580,17 @@
     line-height: 1.8;
   }
   .hira-reveal.show { display: block; }
+
+  .auto-next-notice {
+    display: none;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 12px;
+    font-style: italic;
+    animation: fadeIn 0.3s ease;
+  }
+  .auto-next-notice.show { display: block; }
 </style>
 </head>
 <body>
@@ -654,6 +665,7 @@
 </div>
 
 <button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 →</button>
+<div class="auto-next-notice" id="autoNextNotice">잠시 후 다음 문제로 넘어갑니다...</div>
 
 <div class="score-screen" id="scoreScreen">
   <div class="score-circle">
@@ -917,7 +929,11 @@ function startTimer() {
       clearInterval(timerInterval);
       if (!answered) {
         timeUp();
-        setTimeout(() => nextQuestion(), 2000);
+        document.getElementById('autoNextNotice').classList.add('show');
+        setTimeout(() => {
+          document.getElementById('autoNextNotice').classList.remove('show');
+          nextQuestion();
+        }, 2000);
       }
     }
   }, 1000);

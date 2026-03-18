@@ -741,7 +741,7 @@ function showIntro() {
 }
 
 function startQuiz() {
-  document.getElementById('introScreen').classList.add('hide');
+  document.getElementById('introScreen').style.display = 'none';
   document.getElementById('scoreScreen').classList.remove('show');
   document.getElementById('progressWrap').style.display = 'flex';
   document.getElementById('quizCard').style.display = 'block';

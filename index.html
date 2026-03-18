@@ -915,7 +915,10 @@ function startTimer() {
 
     if (remaining <= 0) {
       clearInterval(timerInterval);
-      if (!answered) timeUp();
+      if (!answered) {
+        timeUp();
+        setTimeout(() => nextQuestion(), 2000);
+      }
     }
   }, 1000);
 }

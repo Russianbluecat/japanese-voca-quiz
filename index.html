@@ -609,7 +609,7 @@
   <div class="intro-badge">🇯🇵 JLPT 단어 퀴즈</div>
   <div class="intro-title" id="introTitle">단어를 불러오는 중...</div>
   <div class="intro-desc">
-    랜덤으로 선택된 <strong>10개의 문제</strong>를 풀어보세요.<br>
+    <span id="introDesc"></span><br>
     한 문제당 <strong>10초</strong> 내로 풀어야 하며,<br>
     시간 초과 시 자동으로 다음 문제로 넘어갑니다.
   </div>
@@ -1003,7 +1003,9 @@ function openPapago() {
       return;
     }
     // Show intro screen
-    document.getElementById('introTitle').textContent = `현재 ${allData.length}개의 단어 중 랜덤으로 선택된 10개의 퀴즈를 풀어보자!`;
+    document.getElementById('introTitle').textContent = `오늘의 단어 퀴즈 — ${allData.length}개 중 10개`;
+    document.getElementById('introDesc').textContent = allData.length;
+    document.getElementById('introDesc').innerHTML = `${allData.length}개의 단어 중 랜덤으로 선택된 <strong>10문제</strong>입니다.`;
     document.getElementById('introScreen').style.display = 'flex';
   } catch (e) {
     document.getElementById('loading').textContent = '데이터 로딩 실패. 시트 공개 설정을 확인해주세요.';

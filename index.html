@@ -393,6 +393,154 @@
 
   .sheet-link a:hover { text-decoration: underline; }
 
+  /* Intro screen */
+  .intro-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 32px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: var(--shadow);
+    gap: 20px;
+  }
+
+  .intro-screen.hide { display: none; }
+
+  .intro-badge {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+
+  .intro-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  .intro-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.9;
+    max-width: 400px;
+  }
+
+  .intro-desc strong { color: var(--ink); }
+
+  .intro-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 8px;
+  }
+
+  .start-btn {
+    padding: 15px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+
+  .start-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
+
+  .rawdata-btn {
+    padding: 12px;
+    background: transparent;
+    color: var(--accent2);
+    border: 1.5px solid var(--accent2);
+    border-radius: 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    transition: all 0.2s;
+  }
+
+  .rawdata-btn:hover { background: var(--correct-bg); }
+
+  /* Timer */
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .timer-circle {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+
+  .timer-circle svg {
+    transform: rotate(-90deg);
+  }
+
+  .timer-circle .track {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 3;
+  }
+
+  .timer-circle .fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+
+  .timer-num {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .timer-bar-bg {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .timer-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s linear, background 0.3s;
+  }
+
   .extra-btns {
     display: none;
     gap: 10px;
@@ -446,6 +594,20 @@
   데이터 불러오는 중<span class="loading-dots"></span>
 </div>
 
+<div class="intro-screen" id="introScreen" style="display:none">
+  <div class="intro-badge">🇯🇵 JLPT 단어 퀴즈</div>
+  <div class="intro-title" id="introTitle">단어를 불러오는 중...</div>
+  <div class="intro-desc">
+    랜덤으로 선택된 <strong>10개의 문제</strong>를 풀어보세요.<br>
+    한 문제당 <strong>10초</strong> 내로 풀어야 하며,<br>
+    시간 초과 시 자동으로 다음 문제로 넘어갑니다.
+  </div>
+  <div class="intro-btns">
+    <button class="start-btn" onclick="startQuiz()">퀴즈 시작하기 →</button>
+    <a class="rawdata-btn" href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data 보기</a>
+  </div>
+</div>
+
 <div class="progress-wrap" id="progressWrap" style="display:none">
   <div class="progress-info">
     <span id="progressText">문제 1 / 10</span>
@@ -457,6 +619,18 @@
 </div>
 
 <div class="quiz-card" id="quizCard" style="display:none">
+  <div class="timer-wrap">
+    <div class="timer-circle">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <circle class="track" cx="20" cy="20" r="16"/>
+        <circle class="fill" id="timerCircle" cx="20" cy="20" r="16"/>
+      </svg>
+      <div class="timer-num" id="timerNum">10</div>
+    </div>
+    <div class="timer-bar-bg">
+      <div class="timer-bar-fill" id="timerBar" style="width:100%"></div>
+    </div>
+  </div>
   <div class="sentence-label">빈칸에 알맞은 단어를 고르세요</div>
   <div class="sentence" id="sentence"></div>
   <div class="translation" id="translationText"></div>
@@ -488,11 +662,11 @@
   </div>
   <div class="score-msg" id="scoreMsg"></div>
   <div class="score-sub" id="scoreSub"></div>
-  <button class="retry-btn" onclick="startQuiz()">다시 풀기 🔄</button>
+  <button class="retry-btn" onclick="showIntro()">다시 풀기 🔄</button>
 </div>
 
 <div class="sheet-link" id="sheetLink" style="display:none">
-  <a href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data(구글 시트) 보러가기 </a>
+  <a href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data (구글 시트)</a>
 </div>
 
 <script>
@@ -560,7 +734,14 @@ function makeOptions(correct, pool) {
   return shuffle([correctWord, ...distractors]);
 }
 
+function showIntro() {
+  document.getElementById('scoreScreen').classList.remove('show');
+  document.getElementById('introScreen').style.display = 'flex';
+  document.getElementById('sheetLink').style.display = 'none';
+}
+
 function startQuiz() {
+  document.getElementById('introScreen').classList.add('hide');
   document.getElementById('scoreScreen').classList.remove('show');
   document.getElementById('progressWrap').style.display = 'flex';
   document.getElementById('quizCard').style.display = 'block';
@@ -577,6 +758,7 @@ function renderQuestion() {
   answered = false;
   const q = quizSet[current];
   currentQuestion = q;
+  startTimer();
   const total = quizSet.length;
 
   // Progress
@@ -620,6 +802,7 @@ function renderQuestion() {
 function selectAnswer(selected, q, clickedBtn, opts) {
   if (answered) return;
   answered = true;
+  stopTimer();
 
   const allBtns = document.querySelectorAll('.option-btn');
   const correctWord = extractBracketWord(q.blank);
@@ -700,6 +883,81 @@ function showScore() {
   document.getElementById('sheetLink').style.display = 'block';
 }
 
+let timerInterval = null;
+const TIMER_SEC = 10;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  let remaining = TIMER_SEC;
+  const circle = document.getElementById('timerCircle');
+  const num = document.getElementById('timerNum');
+  const bar = document.getElementById('timerBar');
+  const circumference = 2 * Math.PI * 16; // r=16
+
+  circle.style.strokeDasharray = circumference;
+  circle.style.strokeDashoffset = 0;
+  circle.style.stroke = 'var(--accent)';
+  bar.style.background = 'var(--accent)';
+  num.textContent = remaining;
+  bar.style.width = '100%';
+
+  timerInterval = setInterval(() => {
+    remaining--;
+    const pct = remaining / TIMER_SEC;
+    circle.style.strokeDashoffset = circumference * (1 - pct);
+    bar.style.width = `${pct * 100}%`;
+    num.textContent = remaining;
+
+    if (remaining <= 3) {
+      circle.style.stroke = 'var(--wrong-border)';
+      bar.style.background = 'var(--wrong-border)';
+    }
+
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeUp();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+function timeUp() {
+  answered = true;
+  const q = currentQuestion;
+  const correctWord = extractBracketWord(q.blank);
+
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => {
+    b.disabled = true;
+    const label = b.querySelector('span:last-child').textContent;
+    if (label === correctWord) b.classList.add('correct');
+  });
+
+  const blankRevealed = q.blank.replace(/[（(][^）)]+[）)]/, `(<span class="blank" style="color:var(--accent2);border-color:var(--accent2)">${correctWord}</span>)`);
+  document.getElementById('sentence').innerHTML = blankRevealed;
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback wrong-fb show';
+  document.getElementById('feedbackIcon').textContent = '⏰';
+  document.getElementById('feedbackText').innerHTML = `시간 초과! 정답은 <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
+
+  const ex = document.getElementById('exampleBox');
+  ex.className = 'example-box show';
+  document.getElementById('exampleJa').textContent = `📖 ${q.sample}`;
+  document.getElementById('exampleKo').textContent = q.translation;
+  const eb = document.getElementById('extraBtns');
+  eb.style.display = 'flex';
+  document.getElementById('hiraReveal').className = 'hira-reveal';
+  document.getElementById('hiraReveal').textContent = '';
+
+  document.getElementById('nextBtn').classList.add('show');
+  document.getElementById('nextBtn').textContent =
+    current + 1 < quizSet.length ? '다음 문제 →' : '결과 보기 →';
+}
+
 function toggleHira() {
   const box = document.getElementById('hiraReveal');
   if (box.classList.contains('show')) {
@@ -725,7 +983,9 @@ function openPapago() {
       document.getElementById('loading').style.display = 'block';
       return;
     }
-    startQuiz();
+    // Show intro screen
+    document.getElementById('introTitle').textContent = `현재 ${allData.length}개의 단어 중 랜덤으로 선택된 10개의 퀴즈를 풀어보자!`;
+    document.getElementById('introScreen').style.display = 'flex';
   } catch (e) {
     document.getElementById('loading').textContent = '데이터 로딩 실패. 시트 공개 설정을 확인해주세요.';
     console.error(e);

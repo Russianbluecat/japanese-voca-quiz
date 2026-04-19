@@ -3,38 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>日本語 단어 퀴즈</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<title>日本語 単語クイズ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink: #1a1a2e;
-    --paper: #f5f0e8;
-    --accent: #c84b31;
-    --accent2: #2d6a4f;
-    --muted: #8a8070;
-    --card: #fffdf7;
-    --border: #d4cdc0;
-    --correct-bg: #e8f5e9;
-    --correct-border: #2d6a4f;
-    --wrong-bg: #fdecea;
-    --wrong-border: #c84b31;
-    --shadow: 0 2px 20px rgba(0,0,0,0.08);
+    --bg: #0d0d14;
+    --surface: #16161f;
+    --card: #1e1e2e;
+    --border: #2e2e45;
+    --accent: #7c6af7;
+    --accent2: #f76a8c;
+    --correct: #4ade80;
+    --wrong: #f87171;
+    --text: #e8e8f0;
+    --muted: #8888aa;
+    --line-color: #7c6af7;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px 16px 60px;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
     background-image:
-      radial-gradient(circle at 20% 20%, rgba(200,75,49,0.04) 0%, transparent 50%),
-      radial-gradient(circle at 80% 80%, rgba(45,106,79,0.04) 0%, transparent 50%);
+      linear-gradient(rgba(124,106,247,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,106,247,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 20px;
   }
 
   header {
@@ -42,976 +56,836 @@
     margin-bottom: 40px;
   }
 
-  header .ja-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 2rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--ink);
-    line-height: 1;
-  }
-
-  header .sub {
-    font-size: 0.8rem;
-    color: var(--muted);
-    letter-spacing: 0.2em;
+  .logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
     text-transform: uppercase;
-    margin-top: 6px;
+    margin-bottom: 12px;
+    opacity: 0.8;
   }
 
-  .divider {
-    width: 60px;
-    height: 2px;
-    background: var(--accent);
-    margin: 12px auto 0;
-  }
-
-  /* Progress */
-  .progress-wrap {
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 28px;
-  }
-
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.78rem;
-    color: var(--muted);
+  h1 {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 8px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
   }
 
-  .progress-bar-bg {
-    width: 100%;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
+  .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 1px;
   }
 
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  /* Quiz Card */
-  .quiz-card {
-    background: var(--card);
+  /* Score / Status bar */
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 36px 32px 28px;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: var(--shadow);
+    border-radius: 12px;
+    padding: 14px 20px;
+    margin-bottom: 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  .stat { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+  .stat-label { color: var(--muted); font-size: 10px; letter-spacing: 2px; }
+  .stat-value { color: var(--text); font-size: 18px; font-weight: 700; }
+  .stat-value.good { color: var(--correct); }
+  .stat-value.bad { color: var(--wrong); }
+
+  /* Timer */
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
     margin-bottom: 16px;
   }
-
-  .sentence-label {
-    font-size: 0.7rem;
-    color: var(--muted);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    font-weight: 600;
+  .timer-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    max-width: 320px;
   }
-
-  .sentence {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 1.5rem;
-    line-height: 1.8;
-    color: var(--ink);
-    margin-bottom: 6px;
+  .timer-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 1s linear, background 0.5s;
+    width: 100%;
   }
-
-  .blank {
-    display: inline-block;
-    min-width: 80px;
-    border-bottom: 2px solid var(--accent);
-    color: var(--accent);
+  .timer-bar-fill.danger { background: linear-gradient(90deg, var(--wrong), #ff4444); }
+  .timer-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 21px;
     font-weight: 700;
-    text-align: center;
+    color: var(--text);
+    min-width: 40px;
+    text-align: right;
+  }
+  .timer-num.danger { color: var(--wrong); }
+
+  /* Quiz arena */
+  .quiz-arena {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 0;
+    align-items: stretch;
+    min-height: 400px;
+  }
+
+  /* SVG canvas for lines */
+  #line-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* Equal height columns via grid */
+  .column {
+    display: grid;
+    grid-template-rows: auto repeat(4, 1fr);
+    gap: 10px;
     padding: 0 8px;
   }
 
-  .translation {
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-top: 10px;
-    line-height: 1.6;
-    font-style: italic;
-  }
-
-  /* Options */
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 28px;
-  }
-
-  .option-btn {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 20px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: var(--ink);
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.15s ease;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .option-btn:hover:not(:disabled) {
-    border-color: var(--ink);
-    background: #f0ede6;
-    transform: translateX(3px);
-  }
-
-  .option-btn .num {
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
-
-  .option-btn.correct {
-    background: var(--correct-bg);
-    border-color: var(--correct-border);
-    color: var(--correct-border);
-    font-weight: 600;
-  }
-
-  .option-btn.correct .num {
-    background: var(--correct-border);
-    border-color: var(--correct-border);
-    color: white;
-  }
-
-  .option-btn.wrong {
-    background: var(--wrong-bg);
-    border-color: var(--wrong-border);
-    color: var(--wrong-border);
-    font-weight: 600;
-  }
-
-  .option-btn.wrong .num {
-    background: var(--wrong-border);
-    border-color: var(--wrong-border);
-    color: white;
-  }
-
-  .option-btn:disabled {
-    cursor: default;
-  }
-
-  /* Feedback */
-  .feedback {
-    margin-top: 16px;
-    padding: 14px 18px;
-    border-radius: 10px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    display: none;
-    align-items: flex-start;
-    gap: 10px;
-    line-height: 1.5;
-  }
-
-  .feedback.show { display: flex; }
-
-  .feedback.correct-fb {
-    background: var(--correct-bg);
-    color: var(--correct-border);
-    border: 1px solid #a5d6a7;
-  }
-
-  .feedback.wrong-fb {
-    background: var(--wrong-bg);
-    color: var(--wrong-border);
-    border: 1px solid #ef9a9a;
-  }
-
-  .feedback-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-
-  /* Example sentence box */
-  .example-box {
-    margin-top: 14px;
-    padding: 12px 16px;
-    background: var(--paper);
-    border-left: 3px solid var(--accent2);
-    border-radius: 0 8px 8px 0;
-    display: none;
-    font-size: 0.83rem;
-    color: var(--ink);
-    line-height: 1.8;
-  }
-
-  .example-box.show { display: block; }
-  .example-box .ja { font-family: 'Noto Serif JP', serif; color: var(--ink); }
-  .example-box .ko { color: var(--muted); margin-top: 2px; font-style: italic; }
-
-  /* Next button */
-  .next-btn {
-    width: 100%;
-    max-width: 600px;
-    padding: 16px;
-    background: var(--ink);
-    color: var(--paper);
-    border: none;
-    border-radius: 12px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: none;
-    margin-top: 4px;
-  }
-
-  .next-btn.show { display: block; }
-  .next-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
-
-  /* Score screen */
-  .score-screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 48px 32px;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: var(--shadow);
-  }
-
-  .score-screen.show { display: flex; }
-
-  .score-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 4px solid var(--accent);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 24px;
-  }
-
-  .score-num {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 2.2rem;
-    font-weight: 700;
+  .col-header {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 3px;
     color: var(--accent);
-    line-height: 1;
+    text-align: center;
+    margin-bottom: 6px;
+    text-transform: uppercase;
   }
 
-  .score-total { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-
-  .score-msg {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 8px;
-  }
-
-  .score-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 32px; }
-
-  .retry-btn {
-    padding: 14px 40px;
-    background: var(--accent);
-    color: white;
-    border: none;
+  .word-card {
+    position: relative;
+    background: var(--card);
+    border: 1.5px solid var(--border);
     border-radius: 10px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 600;
+    padding: 14px 18px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.18s ease;
+    user-select: none;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
-  .retry-btn:hover { background: #a33a22; transform: translateY(-1px); }
+  .word-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(124,106,247,0.15);
+  }
+
+  .word-card.selected {
+    border-color: var(--accent);
+    background: rgba(124,106,247,0.12);
+    box-shadow: 0 0 0 2px rgba(124,106,247,0.3);
+  }
+
+  .word-card.matched {
+    border-color: var(--correct);
+    background: rgba(74,222,128,0.08);
+    cursor: default;
+    opacity: 0.7;
+  }
+
+  .word-card.wrong-flash {
+    border-color: var(--wrong);
+    background: rgba(248,113,113,0.12);
+    animation: wrongShake 0.35s ease;
+  }
+
+  @keyframes wrongShake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  .word-jp {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 3px;
+  }
+
+  .word-hira {
+    font-size: 16px;
+    color: var(--muted);
+    font-family: 'Noto Sans JP', sans-serif;
+  }
+
+  .word-kr {
+    font-size: 19px;
+    line-height: 1.4;
+  }
+
+  /* Center divider */
+  .center-divider {
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    align-self: stretch;
+    margin: 40px 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Connector dots */
+  .dot {
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 2px solid var(--accent);
+    transition: background 0.2s;
+    z-index: 10;
+  }
+
+  .left-col .dot { right: -6px; }
+  .right-col .dot { left: -6px; right: auto; }
+
+  .word-card.matched .dot { background: var(--correct); border-color: var(--correct); }
+  .word-card.selected .dot { background: var(--accent); }
+
+  /* Message overlay */
+  .message {
+    text-align: center;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin: 16px 0;
+    font-weight: 600;
+    letter-spacing: 1px;
+    display: none;
+  }
+
+  .message.show { display: block; }
+  .message.success { background: rgba(74,222,128,0.1); border: 1px solid var(--correct); color: var(--correct); }
+  .message.error { background: rgba(248,113,113,0.1); border: 1px solid var(--wrong); color: var(--wrong); }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 14px 32px;
+    border-radius: 8px;
+    border: 1.5px solid;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: #6a58e0; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(124,106,247,0.4); }
+
+  .btn-outline {
+    background: transparent;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
 
   /* Loading */
   .loading {
     text-align: center;
-    padding: 60px 20px;
+    padding: 80px 20px;
     color: var(--muted);
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
   }
 
-  .loading-dots::after {
-    content: '';
-    animation: dots 1.4s infinite;
+  .loading-dot {
+    display: inline-block;
+    animation: blink 1.2s infinite;
+  }
+  .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%,80%,100% { opacity: 0.2; }
+    40% { opacity: 1; }
   }
 
-  @keyframes dots {
-    0%, 20% { content: '.'; }
-    40% { content: '..'; }
-    60%, 100% { content: '...'; }
+  /* Results screen */
+  .results-screen {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+    animation: fadeIn 0.4s ease;
   }
+
+  .results-screen.show { display: block; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .quiz-card { animation: fadeIn 0.3s ease; }
-
-  .sheet-link {
-    margin-top: 32px;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-
-  .sheet-link a {
-    color: var(--accent2);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .sheet-link a:hover { text-decoration: underline; }
-
-  /* Intro screen */
-  .intro-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 48px 32px;
-    width: 100%;
-    max-width: 600px;
-    box-shadow: var(--shadow);
-    gap: 20px;
-  }
-
-  .intro-screen.hide { display: none; }
-
-  .intro-badge {
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-size: 0.75rem;
-    color: var(--muted);
-    letter-spacing: 0.1em;
-    font-weight: 600;
-  }
-
-  .intro-title {
-    font-family: 'Noto Serif JP', serif;
-    font-size: 1.6rem;
+  .results-score {
+    font-family: 'Space Mono', monospace;
+    font-size: 72px;
     font-weight: 700;
-    color: var(--ink);
-    line-height: 1.4;
+    background: linear-gradient(135deg, var(--correct), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
   }
 
-  .intro-desc {
-    font-size: 0.88rem;
+  .results-label {
     color: var(--muted);
-    line-height: 1.9;
-    max-width: 400px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    margin-bottom: 32px;
   }
 
-  .intro-desc strong { color: var(--ink); }
-
-  .intro-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 100%;
-    max-width: 320px;
-    margin-top: 8px;
-  }
-
-  .start-btn {
-    padding: 15px;
-    background: var(--ink);
-    color: var(--paper);
-    border: none;
-    border-radius: 12px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    transition: all 0.2s;
-  }
-
-  .start-btn:hover { background: #2d2d4e; transform: translateY(-1px); }
-
-  .rawdata-btn {
-    padding: 12px;
-    background: transparent;
-    color: var(--accent2);
-    border: 1.5px solid var(--accent2);
-    border-radius: 12px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    display: block;
-    transition: all 0.2s;
-  }
-
-  .rawdata-btn:hover { background: var(--correct-bg); }
-
-  /* Timer */
-  .timer-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 4px;
-  }
-
-  .timer-circle {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-  }
-
-  .timer-circle svg {
-    transform: rotate(-90deg);
-  }
-
-  .timer-circle .track {
-    fill: none;
-    stroke: var(--border);
-    stroke-width: 3;
-  }
-
-  .timer-circle .fill {
-    fill: none;
-    stroke: var(--accent);
-    stroke-width: 3;
-    stroke-linecap: round;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 1s linear, stroke 0.3s;
-  }
-
-  .timer-num {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  .timer-bar-bg {
-    flex: 1;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
+  .progress-bar-wrap {
+    background: var(--surface);
+    border-radius: 4px;
+    height: 6px;
+    width: 200px;
+    margin: 0 auto 32px;
     overflow: hidden;
   }
 
-  .timer-bar-fill {
+  .progress-bar-fill {
     height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 1s linear, background 0.3s;
+    background: linear-gradient(90deg, var(--accent), var(--correct));
+    border-radius: 4px;
+    transition: width 1s ease;
   }
 
-  .extra-btns {
-    display: none;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-  }
-  .extra-btns.show { display: flex; }
-
-  .extra-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    background: var(--card);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-    color: var(--ink);
-  }
-  .extra-btn:hover { background: var(--paper); border-color: var(--ink); }
-  .extra-btn.hira-btn { border-color: var(--accent2); color: var(--accent2); }
-  .extra-btn.hira-btn:hover { background: var(--correct-bg); }
-  .extra-btn.papago-btn { border-color: #03c75a; color: #03c75a; }
-  .extra-btn.papago-btn:hover { background: #f0fff5; }
-
-  .hira-reveal {
-    display: none;
-    margin-top: 10px;
-    padding: 10px 16px;
-    background: #f0f7ff;
-    border-left: 3px solid #5b9bd5;
-    border-radius: 0 8px 8px 0;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 0.9rem;
-    color: #2c4a6e;
+  /* Error */
+  .error-screen {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--wrong);
+    font-size: 14px;
     line-height: 1.8;
   }
-  .hira-reveal.show { display: block; }
-
-  .auto-next-notice {
-    display: none;
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--muted);
-    margin-top: 12px;
-    font-style: italic;
-    animation: fadeIn 0.3s ease;
-  }
-  .auto-next-notice.show { display: block; }
 </style>
 </head>
 <body>
+<div class="container">
+  <header>
+    <div class="logo">Japanese Vocabulary</div>
+    <h1>単語マッチング</h1>
+    <div class="subtitle">단어와 의미를 연결하세요</div>
+  </header>
 
-<header>
-  <div class="ja-title">日本語 単語クイズ</div>
-  <div class="sub">Japanese Vocabulary Quiz</div>
-  <div class="divider"></div>
-</header>
-
-<div id="loading" class="loading">
-  데이터 불러오는 중<span class="loading-dots"></span>
-</div>
-
-<div class="intro-screen" id="introScreen" style="display:none">
-  <div class="intro-badge">🇯🇵 JLPT 단어 퀴즈</div>
-  <div class="intro-title" id="introTitle">단어를 불러오는 중...</div>
-  <div class="intro-desc">
-    <span id="introDesc"></span><br>
-    한 문제당 <strong>10초</strong> 내로 풀어야 하며,<br>
-    시간 초과 시 자동으로 다음 문제로 넘어갑니다.
-  </div>
-  <div class="intro-btns">
-    <button class="start-btn" onclick="startQuiz()">퀴즈 시작하기 →</button>
-    <a class="rawdata-btn" href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data 보기</a>
-  </div>
-</div>
-
-<div class="progress-wrap" id="progressWrap" style="display:none">
-  <div class="progress-info">
-    <span id="progressText">문제 1 / 10</span>
-    <span id="scoreText">점수: 0</span>
-  </div>
-  <div class="progress-bar-bg">
-    <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
-  </div>
-</div>
-
-<div class="quiz-card" id="quizCard" style="display:none">
-  <div class="timer-wrap">
-    <div class="timer-circle">
-      <svg width="40" height="40" viewBox="0 0 40 40">
-        <circle class="track" cx="20" cy="20" r="16"/>
-        <circle class="fill" id="timerCircle" cx="20" cy="20" r="16"/>
-      </svg>
-      <div class="timer-num" id="timerNum">10</div>
+  <div class="status-bar">
+    <div class="stat">
+      <span class="stat-label">라운드</span>
+      <span class="stat-value" id="round-num">1</span>
     </div>
-    <div class="timer-bar-bg">
-      <div class="timer-bar-fill" id="timerBar" style="width:100%"></div>
+    <div class="stat">
+      <span class="stat-label">진행</span>
+      <span class="stat-value" id="total-words">—/10</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">정답</span>
+      <span class="stat-value good" id="score-correct">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">오답</span>
+      <span class="stat-value bad" id="score-wrong">0</span>
     </div>
   </div>
-  <div class="sentence-label">빈칸에 알맞은 단어를 고르세요</div>
-  <div class="sentence" id="sentence"></div>
-  <div class="translation" id="translationText"></div>
 
-  <div class="options" id="options"></div>
-
-  <div class="feedback" id="feedback">
-    <span class="feedback-icon" id="feedbackIcon"></span>
-    <span id="feedbackText"></span>
-  </div>
-
-  <div class="example-box" id="exampleBox">
-    <div class="ja" id="exampleJa"></div>
-    <div class="ko" id="exampleKo"></div>
-    <div class="extra-btns" id="extraBtns" style="margin-top:12px;">
-      <button class="extra-btn hira-btn" onclick="toggleHira()">🔤 히라가나 보기</button>
-      <button class="extra-btn papago-btn" onclick="openPapago()">🌐 번역 보기</button>
+  <div id="main-area">
+    <div class="loading" id="loading-screen">
+      단어 불러오는 중<span class="loading-dot">.</span><span class="loading-dot">.</span><span class="loading-dot">.</span>
     </div>
-    <div class="hira-reveal" id="hiraReveal"></div>
+
+    <div id="quiz-area" style="display:none;">
+      <div class="timer-wrap">
+        <div class="timer-bar-bg">
+          <div class="timer-bar-fill" id="timer-bar"></div>
+        </div>
+        <div class="timer-num" id="timer-num">20</div>
+      </div>
+      <div class="message" id="msg-box"></div>
+      <div class="quiz-arena" id="arena">
+        <svg id="line-canvas"></svg>
+        <div class="column left-col" id="left-col">
+          <div class="col-header">단어</div>
+        </div>
+        <div class="center-divider"></div>
+        <div class="column right-col" id="right-col">
+          <div class="col-header">의미</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="skipRound()">건너뛰기</button>
+        <button class="btn btn-primary" id="next-btn" onclick="nextRound()" style="display:none;">다음 라운드 →</button>
+      </div>
+    </div>
+
+    <div class="results-screen" id="results-screen">
+      <div class="results-score" id="results-pct">0%</div>
+      <div class="results-label">퀴즈 완료!</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="results-bar" style="width:0%"></div>
+      </div>
+      <p style="color:var(--muted); font-size:13px; margin-bottom: 32px;" id="results-detail"></p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="restartQuiz()">다시 시작</button>
+      </div>
+    </div>
+
+    <div class="error-screen" id="error-screen" style="display:none;">
+      <p>⚠️ 데이터를 불러올 수 없습니다.</p>
+      <p style="font-size:12px; margin-top:12px; color: var(--muted);">구글 시트가 <strong>"링크가 있는 모든 사용자"</strong>에게 공개되어 있는지 확인하세요.</p>
+      <button class="btn btn-outline" onclick="loadData()" style="margin-top:20px;">다시 시도</button>
+    </div>
   </div>
-</div>
-
-<button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음 문제 →</button>
-<div class="auto-next-notice" id="autoNextNotice">잠시 후 다음 문제로 넘어갑니다...</div>
-
-<div class="score-screen" id="scoreScreen">
-  <div class="score-circle">
-    <div class="score-num" id="finalScore">0</div>
-    <div class="score-total" id="finalTotal">/ 10</div>
-  </div>
-  <div class="score-msg" id="scoreMsg"></div>
-  <div class="score-sub" id="scoreSub"></div>
-  <button class="retry-btn" onclick="showIntro()">다시 풀기 🔄</button>
-</div>
-
-<div class="sheet-link" id="sheetLink" style="display:none">
-  <a href="https://docs.google.com/spreadsheets/d/1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo" target="_blank">📊 Raw Data (구글 시트)</a>
 </div>
 
 <script>
 const SHEET_ID = '1F-MzECDTU_S_6lR6_FJLpXOAih4Kg1SjHTCUeqgzOqo';
 const SHEET_NAME = 'Raw_Data';
-const QUIZ_COUNT = 10;
+const ITEMS_PER_ROUND = 4;
+const TOTAL_ROUNDS = 10;
+const ROUND_TIME = 20;
 
-let allData = [];
-let quizSet = [];
-let current = 0;
-let score = 0;
-let answered = false;
-let currentQuestion = null;
-
-async function fetchData() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  // Strip Google's wrapper
-  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
-  const rows = json.table.rows;
-  const cols = json.table.cols;
-
-  const colMap = {};
-  cols.forEach((c, i) => { if (c.label) colMap[c.label.trim()] = i; });
-
-  const getVal = (row, name, fallbackIdx) => {
-    const idx = (colMap[name] !== undefined) ? colMap[name] : fallbackIdx;
-    return row.c[idx]?.v || '';
-  };
-
-  return rows
-    .slice(1) // 첫 번째 행(헤더)은 항상 skip
-    .filter(r => r.c && r.c[0] && r.c[0].v)
-    .map(r => ({
-      original:    getVal(r, 'Original', 0),
-      hiragana:    getVal(r, 'Hiragana', 1),
-      meaning:     getVal(r, 'Meaning', 2),
-      sample:      getVal(r, 'Sample_Sentence', 3),
-      sampleHira:  getVal(r, 'Sample_Sentence_hiragana', 4),
-      blank:       getVal(r, 'Blank_Sentence', 5),
-      translation: getVal(r, 'Translation', 6),
-    }))
-    .filter(d => d.original && d.meaning);
-}
-
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
-// Extract the word inside parentheses from a blank sentence
-function extractBracketWord(blankSentence) {
-  const m = blankSentence.match(/[（(]([^）)]+)[）)]/);
-  return m ? m[1] : null;
-}
-
-function makeOptions(correct, pool) {
-  const correctWord = extractBracketWord(correct.blank);
-  const distractors = shuffle(
-    pool
-      .filter(d => d !== correct)
-      .map(d => extractBracketWord(d.blank))
-      .filter(w => w && w !== correctWord)
-  ).slice(0, 3);
-  return shuffle([correctWord, ...distractors]);
-}
-
-function showIntro() {
-  document.getElementById('scoreScreen').classList.remove('show');
-  document.getElementById('introScreen').style.display = 'flex';
-  document.getElementById('sheetLink').style.display = 'none';
-}
-
-function startQuiz() {
-  document.getElementById('introScreen').style.display = 'none';
-  document.getElementById('scoreScreen').classList.remove('show');
-  document.getElementById('progressWrap').style.display = 'flex';
-  document.getElementById('quizCard').style.display = 'block';
-  document.getElementById('nextBtn').classList.remove('show');
-  document.getElementById('sheetLink').style.display = 'none';
-
-  quizSet = shuffle(allData).slice(0, Math.min(QUIZ_COUNT, allData.length));
-  current = 0;
-  score = 0;
-  renderQuestion();
-}
-
-function renderQuestion() {
-  answered = false;
-  const q = quizSet[current];
-  currentQuestion = q;
-  startTimer();
-  const total = quizSet.length;
-
-  // Progress
-  document.getElementById('progressText').textContent = `문제 ${current + 1} / ${total}`;
-  document.getElementById('scoreText').textContent = `점수: ${score}`;
-  document.getElementById('progressBar').style.width = `${(current / total) * 100}%`;
-
-  // Replace bracket content with blank underline
-  const blankDisplay = q.blank.replace(/[（(][^）)]+[）)]/, '(<span class="blank">　　　　</span>)');
-  document.getElementById('sentence').innerHTML = blankDisplay;
-  document.getElementById('translationText').textContent = q.translation;
-
-  // Hide feedback
-  const fb = document.getElementById('feedback');
-  fb.className = 'feedback';
-  document.getElementById('exampleBox').className = 'example-box';
-  document.getElementById('extraBtns').style.display = 'none';
-  document.getElementById('hiraReveal').className = 'hira-reveal';
-
-  // Options
-  const opts = makeOptions(q, allData);
-  const container = document.getElementById('options');
-  container.innerHTML = '';
-  opts.forEach((opt, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'option-btn';
-    btn.innerHTML = `<span class="num">${i + 1}</span><span>${opt}</span>`;
-    btn.onclick = () => selectAnswer(opt, q, btn, opts);
-    container.appendChild(btn);
-  });
-
-  document.getElementById('nextBtn').classList.remove('show');
-
-  // Animate card
-  const card = document.getElementById('quizCard');
-  card.style.animation = 'none';
-  card.offsetHeight;
-  card.style.animation = 'fadeIn 0.3s ease';
-}
-
-function selectAnswer(selected, q, clickedBtn, opts) {
-  if (answered) return;
-  answered = true;
-  stopTimer();
-
-  const allBtns = document.querySelectorAll('.option-btn');
-  const correctWord = extractBracketWord(q.blank);
-  allBtns.forEach(b => {
-    b.disabled = true;
-    const label = b.querySelector('span:last-child').textContent;
-    if (label === correctWord) b.classList.add('correct');
-  });
-
-  const fb = document.getElementById('feedback');
-  const isCorrect = selected === correctWord;
-
-  // Reveal answer in sentence
-  const blankRevealed = q.blank.replace(/[（(][^）)]+[）)]/, `(<span class="blank" style="color:var(--accent2);border-color:var(--accent2)">${correctWord}</span>)`);
-  document.getElementById('sentence').innerHTML = blankRevealed;
-
-  if (isCorrect) {
-    score++;
-    clickedBtn.classList.add('correct');
-    fb.className = 'feedback correct-fb show';
-    document.getElementById('feedbackIcon').textContent = '✓';
-    document.getElementById('feedbackText').innerHTML = `정답! <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
-  } else {
-    clickedBtn.classList.add('wrong');
-    fb.className = 'feedback wrong-fb show';
-    document.getElementById('feedbackIcon').textContent = '✗';
-    document.getElementById('feedbackText').innerHTML = `오답! 정답은 <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
-  }
-
-  // Show example sentence
-  const ex = document.getElementById('exampleBox');
-  ex.className = 'example-box show';
-  document.getElementById('exampleJa').textContent = `📖 ${q.sample}`;
-  document.getElementById('exampleKo').textContent = q.translation;
-
-  // Show extra buttons
-  const eb = document.getElementById('extraBtns');
-  eb.style.display = 'flex';
-  document.getElementById('hiraReveal').className = 'hira-reveal';
-  document.getElementById('hiraReveal').textContent = '';
-
-  document.getElementById('scoreText').textContent = `점수: ${score}`;
-  document.getElementById('nextBtn').classList.add('show');
-  document.getElementById('nextBtn').textContent =
-    current + 1 < quizSet.length ? '다음 문제 →' : '결과 보기 →';
-}
-
-function nextQuestion() {
-  current++;
-  if (current >= quizSet.length) {
-    showScore();
-  } else {
-    renderQuestion();
-  }
-}
-
-function showScore() {
-  document.getElementById('progressWrap').style.display = 'none';
-  document.getElementById('quizCard').style.display = 'none';
-  document.getElementById('nextBtn').classList.remove('show');
-
-  const total = quizSet.length;
-  const pct = score / total;
-
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('finalTotal').textContent = `/ ${total}`;
-
-  let msg, sub;
-  if (pct === 1) { msg = '완벽해요! 🎉'; sub = '모든 문제를 맞혔습니다!'; }
-  else if (pct >= 0.8) { msg = '훌륭해요! 🌟'; sub = '거의 다 맞혔네요!'; }
-  else if (pct >= 0.6) { msg = '잘 했어요! 👍'; sub = '조금 더 공부하면 완벽해질 거예요.'; }
-  else if (pct >= 0.4) { msg = '계속 노력해요! 💪'; sub = '복습하고 다시 도전해보세요.'; }
-  else { msg = '다시 도전! 📚'; sub = '단어를 더 공부하고 다시 풀어보세요.'; }
-
-  document.getElementById('scoreMsg').textContent = msg;
-  document.getElementById('scoreSub').textContent = sub;
-  document.getElementById('scoreScreen').classList.add('show');
-  document.getElementById('sheetLink').style.display = 'block';
-}
-
+let allWords = [];
+let usedIndices = new Set();
+let currentRound = [];
+let selectedLeft = null;
+let selectedRight = null;
+let matched = {};
+let scoreCorrect = 0;
+let scoreWrong = 0;
+let round = 1;
+let lines = [];
 let timerInterval = null;
-const TIMER_SEC = 10;
+let timeLeft = ROUND_TIME;
+let roundEnded = false;
 
+// ── Load data ──────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('loading-screen').style.display = 'block';
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('error-screen').style.display = 'none';
+
+  // Try multiple sheet name options
+  const sheetNames = ['Raw_Data'];
+  let loaded = false;
+
+  for (const name of sheetNames) {
+    try {
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(name)}`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text.includes('error') || text.trim().length < 10) continue;
+
+      const rows = parseCSV(text);
+      // Find header row: Original, Hiragana, Meaning
+      let dataRows = rows;
+      if (rows[0] && (rows[0][0].includes('Original') || rows[0][0].includes('원') || rows[0][0].includes('단어'))) {
+        dataRows = rows.slice(1);
+      }
+
+      const words = dataRows
+        .filter(r => r[0] && r[0].trim() && r[2] && r[2].trim())
+        .map(r => ({
+          original: r[0].trim(),
+          hiragana: r[1] ? r[1].trim() : '',
+          meaning: r[2].trim()
+        }));
+
+      if (words.length > 0) {
+        allWords = words;
+        loaded = true;
+        break;
+      }
+    } catch (e) { /* try next */ }
+  }
+
+  if (!loaded || allWords.length === 0) {
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('error-screen').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('total-words').textContent = `1/${TOTAL_ROUNDS}`;
+  totalRounds = TOTAL_ROUNDS;
+  document.getElementById('loading-screen').style.display = 'none';
+  startRound();
+}
+
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cols = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur); cur = ''; }
+      else { cur += c; }
+    }
+    cols.push(cur);
+    rows.push(cols.map(c => c.replace(/^"|"$/g, '').trim()));
+  }
+  return rows;
+}
+
+// ── Round management ───────────────────────────────────────
+function startRound() {
+  if (round > TOTAL_ROUNDS) { showResults(); return; }
+
+  matched = {};
+  selectedLeft = null;
+  selectedRight = null;
+  lines = [];
+  roundEnded = false;
+
+  // Pick random words (allow reuse if pool exhausted)
+  const available = allWords.map((_, i) => i).filter(i => !usedIndices.has(i));
+  let pool = available.length >= ITEMS_PER_ROUND ? available : allWords.map((_, i) => i);
+  const pick = shuffle(pool).slice(0, ITEMS_PER_ROUND);
+  pick.forEach(i => usedIndices.add(i));
+  currentRound = pick.map(i => allWords[i]);
+
+  document.getElementById('round-num').textContent = round;
+  document.getElementById('total-words').textContent = `${round}/${TOTAL_ROUNDS}`;
+  document.getElementById('next-btn').style.display = 'none';
+  hideMessage();
+
+  renderRound();
+  document.getElementById('quiz-area').style.display = 'block';
+  startTimer();
+}
+
+function renderRound() {
+  const leftCol = document.getElementById('left-col');
+  const rightCol = document.getElementById('right-col');
+
+  leftCol.innerHTML = '<div class="col-header">단어</div>';
+  rightCol.innerHTML = '<div class="col-header">의미</div>';
+
+  const svg = document.getElementById('line-canvas');
+  svg.innerHTML = '';
+
+  const leftOrder = shuffle([...Array(currentRound.length).keys()]);
+  const rightOrder = shuffle([...Array(currentRound.length).keys()]);
+
+  leftOrder.forEach((idx, pos) => {
+    const w = currentRound[idx];
+    const card = document.createElement('div');
+    card.className = 'word-card';
+    card.dataset.idx = idx;
+    card.dataset.side = 'left';
+    card.innerHTML = `
+      <div class="word-jp">${w.original}</div>
+      ${w.hiragana ? `<div class="word-hira">${w.hiragana}</div>` : ''}
+      <div class="dot" id="dot-l-${idx}"></div>
+    `;
+    card.addEventListener('click', () => selectCard('left', idx, card));
+    leftCol.appendChild(card);
+  });
+
+  rightOrder.forEach((idx, pos) => {
+    const w = currentRound[idx];
+    const card = document.createElement('div');
+    card.className = 'word-card';
+    card.dataset.idx = idx;
+    card.dataset.side = 'right';
+    card.innerHTML = `
+      <div class="word-kr">${w.meaning}</div>
+      <div class="dot" id="dot-r-${idx}"></div>
+    `;
+    card.addEventListener('click', () => selectCard('right', idx, card));
+    rightCol.appendChild(card);
+  });
+}
+
+// ── Timer ──────────────────────────────────────────────────
 function startTimer() {
   clearInterval(timerInterval);
-  let remaining = TIMER_SEC;
-  const circle = document.getElementById('timerCircle');
-  const num = document.getElementById('timerNum');
-  const bar = document.getElementById('timerBar');
-  const circumference = 2 * Math.PI * 16; // r=16
-
-  circle.style.strokeDasharray = circumference;
-  circle.style.strokeDashoffset = 0;
-  circle.style.stroke = 'var(--accent)';
-  bar.style.background = 'var(--accent)';
-  num.textContent = remaining;
-  bar.style.width = '100%';
+  timeLeft = ROUND_TIME;
+  updateTimerUI();
 
   timerInterval = setInterval(() => {
-    remaining--;
-    const pct = remaining / TIMER_SEC;
-    circle.style.strokeDashoffset = circumference * (1 - pct);
-    bar.style.width = `${pct * 100}%`;
-    num.textContent = remaining;
-
-    if (remaining <= 3) {
-      circle.style.stroke = 'var(--wrong-border)';
-      bar.style.background = 'var(--wrong-border)';
-    }
-
-    if (remaining <= 0) {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) {
       clearInterval(timerInterval);
-      if (!answered) {
-        timeUp();
-        document.getElementById('autoNextNotice').classList.add('show');
-        setTimeout(() => {
-          document.getElementById('autoNextNotice').classList.remove('show');
-          nextQuestion();
-        }, 2000);
-      }
+      timeUp();
     }
   }, 1000);
+}
+
+function updateTimerUI() {
+  const bar = document.getElementById('timer-bar');
+  const num = document.getElementById('timer-num');
+  const pct = (timeLeft / ROUND_TIME) * 100;
+  bar.style.width = pct + '%';
+  num.textContent = timeLeft;
+  const danger = timeLeft <= 5;
+  bar.classList.toggle('danger', danger);
+  num.classList.toggle('danger', danger);
+}
+
+function timeUp() {
+  if (roundEnded) return;
+  roundEnded = true;
+
+  // Reveal all unmatched correct answers
+  // 미연결 쌍 개수만큼 오답 처리
+  const unmatchedCount = currentRound.length - Object.keys(matched).length;
+  if (unmatchedCount > 0) {
+    scoreWrong += unmatchedCount;
+    document.getElementById('score-wrong').textContent = scoreWrong;
+  }
+
+  for (let idx = 0; idx < currentRound.length; idx++) {
+    if (matched[idx] !== undefined) continue;
+    const leftCard = document.querySelector(`.word-card[data-side="left"][data-idx="${idx}"]`);
+    const rightCard = document.querySelector(`.word-card[data-side="right"][data-idx="${idx}"]`);
+    if (leftCard) {
+      leftCard.classList.remove('selected');
+      leftCard.classList.add('matched');
+      leftCard.style.opacity = '0.45';
+    }
+    if (rightCard) {
+      rightCard.classList.remove('selected');
+      rightCard.classList.add('matched');
+      rightCard.style.opacity = '0.45';
+    }
+    drawLine(idx, idx, true);
+  }
+
+  showMessage(`⏱ 시간 초과! 미연결 ${unmatchedCount}개 오답 처리됩니다.`, 'error');
+  document.getElementById('next-btn').style.display = 'inline-block';
 }
 
 function stopTimer() {
   clearInterval(timerInterval);
 }
 
-function timeUp() {
-  answered = true;
-  const q = currentQuestion;
-  const correctWord = extractBracketWord(q.blank);
 
-  const allBtns = document.querySelectorAll('.option-btn');
-  allBtns.forEach(b => {
-    b.disabled = true;
-    const label = b.querySelector('span:last-child').textContent;
-    if (label === correctWord) b.classList.add('correct');
-  });
+function selectCard(side, idx, card) {
+  if (card.classList.contains('matched')) return;
+  if (roundEnded) return;
 
-  const blankRevealed = q.blank.replace(/[（(][^）)]+[）)]/, `(<span class="blank" style="color:var(--accent2);border-color:var(--accent2)">${correctWord}</span>)`);
-  document.getElementById('sentence').innerHTML = blankRevealed;
-
-  const fb = document.getElementById('feedback');
-  fb.className = 'feedback wrong-fb show';
-  document.getElementById('feedbackIcon').textContent = '⏰';
-  document.getElementById('feedbackText').innerHTML = `시간 초과! 정답은 <strong>「${correctWord}」</strong> = <strong>${q.meaning}</strong>`;
-
-  const ex = document.getElementById('exampleBox');
-  ex.className = 'example-box show';
-  document.getElementById('exampleJa').textContent = `📖 ${q.sample}`;
-  document.getElementById('exampleKo').textContent = q.translation;
-  const eb = document.getElementById('extraBtns');
-  eb.style.display = 'flex';
-  document.getElementById('hiraReveal').className = 'hira-reveal';
-  document.getElementById('hiraReveal').textContent = '';
-
-  document.getElementById('nextBtn').classList.add('show');
-  document.getElementById('nextBtn').textContent =
-    current + 1 < quizSet.length ? '다음 문제 →' : '결과 보기 →';
-}
-
-function toggleHira() {
-  const box = document.getElementById('hiraReveal');
-  if (box.classList.contains('show')) {
-    box.classList.remove('show');
-  } else {
-    box.textContent = currentQuestion.sampleHira || '히라가나 정보 없음';
-    box.classList.add('show');
-  }
-}
-
-function openPapago() {
-  const sentence = encodeURIComponent(currentQuestion.sample);
-  window.open(`https://papago.naver.com/?sk=ja&tk=ko&hn=1&st=${sentence}`, '_blank');
-}
-
-// Init
-(async () => {
-  try {
-    allData = await fetchData();
-    document.getElementById('loading').style.display = 'none';
-    if (allData.length < 4) {
-      document.getElementById('loading').textContent = '데이터가 부족합니다. 시트를 확인해주세요.';
-      document.getElementById('loading').style.display = 'block';
-      return;
+  if (side === 'left') {
+    // Deselect previous left
+    if (selectedLeft !== null) {
+      const prev = document.querySelector(`.word-card[data-side="left"][data-idx="${selectedLeft}"]`);
+      if (prev) prev.classList.remove('selected');
     }
-    // Show intro screen
-    document.getElementById('introTitle').textContent = `오늘의 단어 퀴즈 — ${allData.length}개 중 10개`;
-    document.getElementById('introDesc').textContent = allData.length;
-    document.getElementById('introDesc').innerHTML = `${allData.length}개의 단어 중 랜덤으로 선택된 <strong>10문제</strong>입니다.`;
-    document.getElementById('introScreen').style.display = 'flex';
-  } catch (e) {
-    document.getElementById('loading').textContent = '데이터 로딩 실패. 시트 공개 설정을 확인해주세요.';
-    console.error(e);
+    selectedLeft = idx;
+    card.classList.add('selected');
+  } else {
+    if (selectedRight !== null) {
+      const prev = document.querySelector(`.word-card[data-side="right"][data-idx="${selectedRight}"]`);
+      if (prev) prev.classList.remove('selected');
+    }
+    selectedRight = idx;
+    card.classList.add('selected');
   }
-})();
+
+  if (selectedLeft !== null && selectedRight !== null) {
+    checkMatch();
+  }
+}
+
+function checkMatch() {
+  const leftCard = document.querySelector(`.word-card[data-side="left"][data-idx="${selectedLeft}"]`);
+  const rightCard = document.querySelector(`.word-card[data-side="right"][data-idx="${selectedRight}"]`);
+
+  if (selectedLeft === selectedRight) {
+    // Correct!
+    scoreCorrect++;
+    document.getElementById('score-correct').textContent = scoreCorrect;
+
+    leftCard.classList.remove('selected');
+    rightCard.classList.remove('selected');
+    leftCard.classList.add('matched');
+    rightCard.classList.add('matched');
+    matched[selectedLeft] = selectedRight;
+
+    drawLine(selectedLeft, selectedRight, true);
+
+    selectedLeft = null;
+    selectedRight = null;
+
+    if (Object.keys(matched).length === currentRound.length) {
+      roundEnded = true;
+      stopTimer();
+      setTimeout(() => {
+        showMessage('✓ 라운드 완료!', 'success');
+        document.getElementById('next-btn').style.display = 'inline-block';
+      }, 300);
+    }
+  } else {
+    // Wrong!
+    scoreWrong++;
+    document.getElementById('score-wrong').textContent = scoreWrong;
+
+    leftCard.classList.remove('selected');
+    rightCard.classList.remove('selected');
+    leftCard.classList.add('wrong-flash');
+    rightCard.classList.add('wrong-flash');
+
+    drawLine(selectedLeft, selectedRight, false);
+
+    setTimeout(() => {
+      leftCard.classList.remove('wrong-flash');
+      rightCard.classList.remove('wrong-flash');
+      // Remove wrong line
+      const wrongLine = document.getElementById('wrong-line-temp');
+      if (wrongLine) wrongLine.remove();
+    }, 500);
+
+    selectedLeft = null;
+    selectedRight = null;
+  }
+}
+
+// ── SVG Lines ──────────────────────────────────────────────
+function getDotPos(dotEl) {
+  const arena = document.getElementById('arena');
+  const arenaRect = arena.getBoundingClientRect();
+  const dotRect = dotEl.getBoundingClientRect();
+  return {
+    x: dotRect.left + dotRect.width / 2 - arenaRect.left,
+    y: dotRect.top + dotRect.height / 2 - arenaRect.top
+  };
+}
+
+function drawLine(leftIdx, rightIdx, correct) {
+  const dotL = document.getElementById(`dot-l-${leftIdx}`);
+  const dotR = document.getElementById(`dot-r-${rightIdx}`);
+  if (!dotL || !dotR) return;
+
+  const p1 = getDotPos(dotL);
+  const p2 = getDotPos(dotR);
+
+  const svg = document.getElementById('line-canvas');
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  const cx1 = p1.x + (p2.x - p1.x) * 0.4;
+  const cx2 = p1.x + (p2.x - p1.x) * 0.6;
+  const d = `M ${p1.x} ${p1.y} C ${cx1} ${p1.y}, ${cx2} ${p2.y}, ${p2.x} ${p2.y}`;
+
+  line.setAttribute('d', d);
+  line.setAttribute('stroke', correct ? 'var(--correct)' : 'var(--wrong)');
+  line.setAttribute('stroke-width', '2.5');
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke-linecap', 'round');
+  line.setAttribute('opacity', correct ? '0.8' : '0.6');
+  if (!correct) line.setAttribute('id', 'wrong-line-temp');
+
+  svg.appendChild(line);
+}
+
+function nextRound() {
+  stopTimer();
+  round++;
+  startRound();
+}
+
+function skipRound() {
+  stopTimer();
+  round++;
+  startRound();
+}
+
+// ── Results ────────────────────────────────────────────────
+function showResults() {
+  document.getElementById('quiz-area').style.display = 'none';
+  const total = scoreCorrect + scoreWrong;
+  const pct = total > 0 ? Math.round(scoreCorrect / total * 100) : 100;
+  document.getElementById('results-pct').textContent = pct + '%';
+  document.getElementById('results-detail').textContent = `정답 ${scoreCorrect}개 / 오답 ${scoreWrong}개 (총 ${total}번 시도)`;
+  document.getElementById('results-screen').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('results-bar').style.width = pct + '%';
+  }, 100);
+}
+
+function restartQuiz() {
+  stopTimer();
+  usedIndices = new Set();
+  scoreCorrect = 0;
+  scoreWrong = 0;
+  round = 1;
+  roundEnded = false;
+  document.getElementById('score-correct').textContent = 0;
+  document.getElementById('score-wrong').textContent = 0;
+  document.getElementById('results-screen').classList.remove('show');
+  startRound();
+}
+
+// ── Utils ──────────────────────────────────────────────────
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function showMessage(text, type) {
+  const box = document.getElementById('msg-box');
+  box.textContent = text;
+  box.className = `message show ${type}`;
+}
+
+function hideMessage() {
+  const box = document.getElementById('msg-box');
+  box.className = 'message';
+}
+
+// ── Init ───────────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
